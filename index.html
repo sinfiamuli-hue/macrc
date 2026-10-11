@@ -578,6 +578,77 @@
     .month-group-head{ flex-wrap:wrap; }
   }
 
+
+  /* ---------- Sticky detail navigation (back + staff switcher + month chips) ---------- */
+  .detail-nav{
+    position:sticky; top:0; z-index:20;
+    background:var(--paper);
+    margin:0 0 18px;
+    padding:12px 0 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .detail-nav-top{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap; margin-bottom:10px;
+  }
+  .detail-nav .back-link{
+    margin-bottom:0;
+    padding:8px 14px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:#fff;
+    font-weight:600;
+  }
+  .staff-switch{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:0.82rem; color:var(--mocha);
+    font-family:'Karla', sans-serif;
+  }
+  .staff-switch select{
+    font:inherit; font-size:0.9rem; color:var(--ink);
+    background:#fff; border:1px solid var(--line);
+    border-radius:999px; padding:7px 12px; max-width:220px; cursor:pointer;
+  }
+  .month-nav{ display:flex; align-items:center; gap:10px; }
+  .month-nav-label{
+    flex:none; font-size:0.74rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--mocha); font-family:'Karla', sans-serif;
+  }
+  .month-chips{
+    display:flex; gap:8px; overflow-x:auto; padding:2px 2px 6px;
+    scrollbar-width:thin; flex:1; min-width:0;
+  }
+  .month-chip{
+    flex:none; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:var(--coffee);
+    border-radius:999px; padding:6px 13px;
+    font-family:'Karla', sans-serif; font-size:0.84rem; white-space:nowrap;
+  }
+  .month-chip:hover{ border-color:var(--caramel); color:var(--caramel-dark); }
+  .month-chip.active{ background:var(--coffee); border-color:var(--coffee); color:var(--cream); }
+  .month-chip .cnt{ opacity:0.65; margin-inline-start:6px; font-size:0.76rem; }
+  .month-group{ scroll-margin-top:130px; }
+  html[lang="dv"] .month-chip,
+  html[lang="dv"] .staff-switch,
+  html[lang="dv"] .staff-switch select,
+  html[lang="dv"] .month-nav-label{ font-family:'Mv Meemu Ali', sans-serif; letter-spacing:0; text-transform:none; }
+  @media (max-width:560px){
+    .month-nav{ flex-direction:column; align-items:flex-start; gap:4px; }
+    .month-chips{ width:100%; }
+    .staff-switch select{ max-width:150px; }
+  }
+
+
+  .dir-months{ flex-wrap:wrap; overflow:visible; margin:6px 0 12px; }
+  .month-summary{
+    display:flex; flex-wrap:wrap; gap:6px 18px; align-items:baseline;
+    font-family:'Karla', sans-serif; font-size:0.9rem; color:var(--coffee);
+    padding:10px 14px; margin-bottom:14px;
+    background:rgba(198,137,58,0.10); border:1px solid var(--line); border-radius:12px;
+  }
+  .month-summary b{ color:var(--caramel-dark); font-size:1.05rem; }
+  html[lang="dv"] .month-summary{ font-family:'Mv Meemu Ali', sans-serif; }
+
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; }
   }
@@ -626,15 +697,30 @@
     <h2 class="section-title" data-i18n="directoryTitle">Staff Directory</h2>
     <p class="section-note" data-i18n="directoryNote">Select a name to view their individual entries across the full period.</p>
 
+    <div class="month-chips dir-months" id="dirMonths"></div>
+    <div class="month-summary" id="monthSummary"></div>
+
     <div class="directory" id="directoryList"></div>
   </div>
 
   <!-- DETAIL VIEW -->
   <div id="detailView">
-    <button class="back-link" id="backBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      <span data-i18n="backToDirectory">Back to directory</span>
-    </button>
+    <div class="detail-nav" id="detailNav">
+      <div class="detail-nav-top">
+        <button class="back-link" id="backBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span data-i18n="backToDirectory">Back to directory</span>
+        </button>
+        <label class="staff-switch">
+          <span data-i18n="switchStaff">Staff</span>
+          <select id="staffSelect" aria-label="Switch staff member"></select>
+        </label>
+      </div>
+      <div class="month-nav">
+        <span class="month-nav-label" data-i18n="jumpToMonth">Jump to month</span>
+        <div class="month-chips" id="monthChips"></div>
+      </div>
+    </div>
 
     <div class="receipt-head">
       <div>
@@ -697,6 +783,11 @@ const TRANSLATIONS = {
     entries: "entries",
     recorded: "recorded",
     backToDirectory: "Back to directory",
+    switchStaff: "Staff",
+    allTime: "All time",
+    monthTotalLbl: "Month total",
+    peopleLbl: "people",
+    jumpToMonth: "Jump to month",
     totalAmount: "TOTAL AMOUNT",
     timestamp: "Timestamp",
     beveragesConsumed: "Beverages consumed",
@@ -730,6 +821,11 @@ const TRANSLATIONS = {
     entries: "ރެކޯޑުތައް",
     recorded: "ހިމެނޭ",
     backToDirectory: "ރެކޯޑަށް އަނބުރާ",
+    switchStaff: "ސްޓާފް",
+    allTime: "ހުރިހާ މަސްތައް",
+    monthTotalLbl: "މަހުގެ ޖުމްލަ",
+    peopleLbl: "ސްޓާފުން",
+    jumpToMonth: "މަހަކަށް ދާންވީ",
     totalAmount: "ޖުމްލަ ފައިސާ",
     timestamp: "ވަގުތާއި ތާރީޚް",
     beveragesConsumed: "ބުއިފައިވާ ބުއިން",
@@ -901,40 +997,81 @@ const directoryList = document.getElementById('directoryList');
 const searchInput = document.getElementById('searchInput');
 const resultCount = document.getElementById('resultCount');
 
+const MONTH_ORDER = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function monthIndex(key){
+  const [m, y] = key.split(' ');
+  return parseInt(y, 10) * 12 + (MONTH_ORDER[m] || 0);
+}
+// All months present in the data, latest first
+const monthList = Array.from(new Set(RAW_DATA.map(e => monthKeyOf(e.ts).key)))
+  .sort((a, b) => monthIndex(b) - monthIndex(a));
+let selectedMonth = monthList[0];   // always opens on the latest month ('ALL' = all time)
+
+const dirMonths = document.getElementById('dirMonths');
+const monthSummary = document.getElementById('monthSummary');
+const numFmt = n => currentLang === 'dv' ? toDhivehiDigits(n) : n;
+
 function renderDirectory(filter){
   const f = (filter || '').trim().toLowerCase();
-  const filtered = staffList.filter(s => s.name.toLowerCase().includes(f) || displayName(s.name).toLowerCase().includes(f));
+  const isAll = selectedMonth === 'ALL';
 
+  // month chips (latest first)
+  dirMonths.innerHTML = '';
+  [['ALL', t('allTime')], ...monthList.map(k => [k, formatMonthLabel(k)])].forEach(([key, label]) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'month-chip' + (key === selectedMonth ? ' active' : '');
+    chip.textContent = label;
+    chip.addEventListener('click', () => { selectedMonth = key; renderDirectory(searchInput.value); });
+    dirMonths.appendChild(chip);
+  });
+
+  // people with their total for the selected month
+  const rows = staffList.map(st => {
+    const entries = isAll ? st.entries : st.entries.filter(e => monthKeyOf(e.ts).key === selectedMonth);
+    return { name: st.name, count: entries.length, total: entries.reduce((a, e) => a + e.amt, 0) };
+  }).filter(r => r.count > 0);
+  if(!isAll) rows.sort((a, b) => b.total - a.total);
+
+  const mTotal = rows.reduce((a, r) => a + r.total, 0);
+  const mEntries = rows.reduce((a, r) => a + r.count, 0);
+  monthSummary.innerHTML = `
+    <span>${isAll ? t('allTime') : formatMonthLabel(selectedMonth)}</span>
+    <span>${t('monthTotalLbl')}: <b>${fmtMVR(mTotal)}</b></span>
+    <span>${numFmt(rows.length)} ${t('peopleLbl')} · ${numFmt(mEntries)} ${entryWord(mEntries)}</span>`;
+
+  const filtered = rows.filter(r => r.name.toLowerCase().includes(f) || displayName(r.name).toLowerCase().includes(f));
   directoryList.innerHTML = '';
 
   if(filtered.length === 0){
-    directoryList.innerHTML = `<div class="empty-state">${t('noStaffMatch')} “${filter}”.</div>`;
+    directoryList.innerHTML = `<div class="empty-state">${t('noStaffMatch')} ${filter ? '“' + filter + '”' : ''}.</div>`;
     resultCount.textContent = '';
     return;
   }
 
   resultCount.textContent = filter
     ? (currentLang === 'dv'
-      ? `${toDhivehiDigits(filtered.length)} / ${toDhivehiDigits(staffList.length)} ${t('staffCount')}`
-      : `${filtered.length} of ${staffList.length} ${t('staffCount')}`)
-    : `${currentLang === 'dv' ? toDhivehiDigits(staffList.length) : staffList.length} ${t('staffCount')}`;
+      ? `${toDhivehiDigits(filtered.length)} / ${toDhivehiDigits(rows.length)} ${t('staffCount')}`
+      : `${filtered.length} of ${rows.length} ${t('staffCount')}`)
+    : `${numFmt(rows.length)} ${t('staffCount')}`;
 
-  filtered.forEach(s => {
+  filtered.forEach(r => {
     const row = document.createElement('div');
     row.className = 'staff-row';
     row.tabIndex = 0;
     row.setAttribute('role', 'button');
     row.innerHTML = `
-      <div class="staff-initial">${initials(s.name)}</div>
+      <div class="staff-initial">${initials(r.name)}</div>
       <div class="staff-info">
-        <div class="staff-name">${displayName(s.name)}</div>
-        <div class="staff-meta">${currentLang === 'dv' ? toDhivehiDigits(s.entries.length) : s.entries.length} ${entryWord(s.entries.length)} ${t('recorded')}</div>
+        <div class="staff-name">${displayName(r.name)}</div>
+        <div class="staff-meta">${numFmt(r.count)} ${entryWord(r.count)} ${t('recorded')}</div>
       </div>
-      <div class="staff-total">${fmtMVR(s.total)}</div>
+      <div class="staff-total">${fmtMVR(r.total)}</div>
       <svg class="staff-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     `;
-    row.addEventListener('click', () => showDetail(s.name));
-    row.addEventListener('keypress', e => { if(e.key === 'Enter') showDetail(s.name); });
+    const open = () => showDetail(r.name, isAll ? null : selectedMonth);
+    row.addEventListener('click', open);
+    row.addEventListener('keypress', e => { if(e.key === 'Enter') open(); });
     directoryList.appendChild(row);
   });
 }
@@ -991,7 +1128,7 @@ function groupByMonth(entries){
 
 let currentDetailName = null;
 
-function showDetail(name){
+function showDetail(name, jumpMonth){
   const s = staffMap.get(name);
   if(!s) return;
 
@@ -1001,11 +1138,12 @@ function showDetail(name){
   detailTotal.textContent = fmtMVR(s.total);
 
   entriesList.innerHTML = '';
-  const monthGroups = groupByMonth(s.entries);
+  const monthGroups = groupByMonth(s.entries).sort((a, b) => monthIndex(b.key) - monthIndex(a.key)); // latest month on top
 
-  monthGroups.forEach(group => {
+  monthGroups.forEach((group, gi) => {
     const groupEl = document.createElement('div');
     groupEl.className = 'month-group';
+    groupEl.id = 'month-' + gi;
 
     const head = document.createElement('div');
     head.className = 'month-group-head';
@@ -1029,12 +1167,72 @@ function showDetail(name){
     entriesList.appendChild(groupEl);
   });
 
+  buildStaffSelect(name);
+  buildMonthChips(monthGroups);
+
   directoryView.style.display = 'none';
   detailView.style.display = 'block';
-  window.scrollTo({top:0, behavior:'smooth'});
+  const jumpIdx = jumpMonth ? monthGroups.findIndex(g => g.key === jumpMonth) : -1;
+  if(jumpIdx >= 0){
+    document.getElementById('month-' + jumpIdx).scrollIntoView({block:'start'});
+  } else {
+    window.scrollTo({top:0});
+  }
+  updateActiveMonth();
 }
 
+// ---------- Detail navigation: staff switcher + month chips ----------
+const staffSelect = document.getElementById('staffSelect');
+const monthChips = document.getElementById('monthChips');
+
+function buildStaffSelect(current){
+  staffSelect.innerHTML = '';
+  staffList.forEach(st => {
+    const opt = document.createElement('option');
+    opt.value = st.name;
+    opt.textContent = displayName(st.name);
+    if(st.name === current) opt.selected = true;
+    staffSelect.appendChild(opt);
+  });
+}
+staffSelect.addEventListener('change', e => showDetail(e.target.value));
+
+function buildMonthChips(groups){
+  monthChips.innerHTML = '';
+  groups.forEach((g, gi) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'month-chip';
+    chip.dataset.target = 'month-' + gi;
+    const n = currentLang === 'dv' ? toDhivehiDigits(g.entries.length) : g.entries.length;
+    chip.innerHTML = `${formatMonthLabel(g.label)}<span class="cnt">${n}</span>`;
+    chip.addEventListener('click', () => {
+      const el = document.getElementById(chip.dataset.target);
+      if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+    monthChips.appendChild(chip);
+  });
+}
+
+function updateActiveMonth(){
+  if(detailView.style.display === 'none') return;
+  const groups = Array.from(entriesList.querySelectorAll('.month-group'));
+  if(!groups.length) return;
+  let activeId = groups[0].id;
+  groups.forEach(g => { if(g.getBoundingClientRect().top <= 160) activeId = g.id; });
+  monthChips.querySelectorAll('.month-chip').forEach(c => {
+    const on = c.dataset.target === activeId;
+    c.classList.toggle('active', on);
+    if(on){
+      const left = c.offsetLeft - monthChips.clientWidth/2 + c.clientWidth/2;
+      monthChips.scrollTo({left: Math.max(0, left), behavior:'auto'});
+    }
+  });
+}
+window.addEventListener('scroll', updateActiveMonth, {passive:true});
+
 function showDirectory(){
+  window.scrollTo({top:0});
   detailView.style.display = 'none';
   directoryView.style.display = 'block';
 }
